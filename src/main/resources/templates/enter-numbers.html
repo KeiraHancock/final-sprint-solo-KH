@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tree Result Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      margin: 0;
+      padding: 24px;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { margin: 0 0 10px 0; font-size: 22px; }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      width: 520px;
+      max-width: 100%;
+      padding: 10px;
+      font-size: 15px;
+    }
+    button, a.btn {
+      padding: 10px 14px;
+      border: 1px solid #333;
+      background: #fff;
+      cursor: pointer;
+      text-decoration: none;
+      color: #000;
+      font-size: 14px;
+    }
+    .resultBox {
+      background: #e9e9e9;
+      padding: 18px;
+      border-radius: 6px;
+      border: 1px solid #cfcfcf;
+      min-height: 380px;
+    }
+    pre {
+      margin: 0;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 15px;
+      white-space: pre;
+      overflow: auto;
+    }
+    .caption {
+      text-align: center;
+      margin-top: 10px;
+      font-style: italic;
+      color: #333;
+    }
+    .error {
+      color: #b00020;
+      margin: 10px 0;
+      display: none;
+    }
+    label { font-size: 14px; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Binary Search Tree Builder</h1>
+
+    <div class="controls">
+      <input id="numbers" type="text" placeholder="Enter numbers like: 2, 1, 4, 3, 5" />
+      <label>
+        <input id="balanced" type="checkbox" />
+        Balanced (bonus)
+      </label>
+      <button id="submitBtn">Submit</button>
+      <a class="btn" href="/previous-trees">Show Previous</a>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <div class="resultBox">
+      <pre id="jsonOut">{}</pre>
+    </div>
+
+    <div class="caption">Figure 4 - Tree Result Page</div>
+  </div>
+
+  <script>
+    const numbersEl = document.getElementById("numbers");
+    const balancedEl = document.getElementById("balanced");
+    const submitBtn = document.getElementById("submitBtn");
+    const jsonOut = document.getElementById("jsonOut");
+    const errorEl = document.getElementById("error");
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = "block";
+    }
+
+    function clearError() {
+      errorEl.textContent = "";
+      errorEl.style.display = "none";
+    }
+
+    submitBtn.addEventListener("click", async () => {
+      clearError();
+
+      const numbers = numbersEl.value.trim();
+      const balanced = balancedEl.checked;
+
+      if (!numbers) {
+        showError("Please enter at least one number.");
+        return;
+      }
+
+      try {
+        const body = new URLSearchParams();
+        body.append("numbers", numbers);
+        body.append("balanced", balanced);
+
+        const res = await fetch("/process-numbers", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt || ("Request failed: " + res.status));
+        }
+
+        const data = await res.json();
+        jsonOut.textContent = JSON.stringify(data, null, 2); // pretty JSON like screenshot
+      } catch (e) {
+        showError(e.message || "Something went wrong.");
+      }
+    });
+  </script>
+</body>
+</html>
